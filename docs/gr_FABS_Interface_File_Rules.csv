@@ -1,0 +1,215 @@
+"NAME","Active","Apex Validation Method","Comments","Error Text","Record Type 1","Record Type 2","Record Type 3","SOQL Where Clause","Severity","Validation Type"
+"FABS1.1","true","","","FAIN is required for non-aggregate and PII-redacted non-aggregate records (RecordType = 2 or 3).","false","true","true","gr_record_type__c IN ('2', '3')
+    AND (gr_fain__c = NULL OR gr_fain__c = '')
+    AND (gr_correction_delete_indicatr__c = NULL OR gr_correction_delete_indicatr__c <> 'D')","Fatal Error","SOQL"
+"FABS1.2","true","","","FAIN must not be used for aggregate records (RecordType = 1).","true","false","false","gr_record_type__c = '1'
+    AND gr_fain__c <> ''","Fatal Error","SOQL"
+"FABS2.1","true","FABS2_1Rule","","The combination of FAIN, AwardModificationAmendmentNumber, URI, AssistanceListingNumber, and AwardingSubTierAgencyCode must be unique within the submission file.","true","true","true","","Fatal Error","Apex"
+"FABS2.2","false","","The combination of FAIN, AwardModificationAmendmentNumber, URI, AssistanceListingNumber, and AwardingSubTierAgencyCode must be unique when compared to currently published data--unless the record is a correction or deletion (i.e., if CorrectionDeleteIndicator = C or D). In this particular case, the combination of these five fields in this transaction has already been published in USAspending, making this second attempt a duplicate.","","true","true","true","","Fatal Error","Not Configured"
+"FABS3.2","true","","","ActionType must contain one of the following values: ""A"", ""B"", ""C"", ""D"", ""E"".","true","true","true","gr_action_type__c  NOT IN ('A', 'B', 'C', 'D', 'E')
+    AND gr_correction_delete_indicatr__c  <> 'D'","Fatal Error","SOQL"
+"FABS3.3","false","","ActionType should be B, C, or D for transactions that modify existing awards. For RecordType = 1, we consider a record a modification if its combination of URI + AwardingSubTierAgencyCode matches an existing published FABS record of the same RecordType. For RecordType = 2 or 3, we consider a record a modification if its combination of FAIN + AwardingSubTierCode matches those of an existing published FABS record (RecordType = 2 or 3) of the same RecordType. This rule does not trigger for correction records (those with CorrectionDeleteIndicator = C).","","true","true","true","","Warning","Not Configured"
+"FABS3.4","true","","","ActionType = E is only valid for mixed aggregate records (RecordType = 1).","true","false","false","gr_action_type__c = 'E' 
+AND gr_record_type__c <> '1'","Fatal Error","SOQL"
+"FABS4.1","false","","ActionDate must follow YYYYMMDD format, where YYYY is the year, MM the month and DD the day.","","true","true","true","","Fatal Error","Other"
+"FABS4.2","true","","","Value of ActionDate must be between 19991001 and 20991231 (i.e., a date between 10/01/1999 and 12/31/2099).","true","true","true","gr_action_date__c <= 1999-10-01 and gr_action_date__c >=2099-12-31","Fatal Error","SOQL"
+"FABS4.3","true","FABS4_3Rule","","A future ActionDate is valid only if it occurs within the current fiscal year.","true","true","true","","Fatal Error","Apex"
+"FABS5","true","","","AssistanceType field must contain one of the following values: ""02"", ""03"", ""04"", ""05"", ""06"", ""07"", ""08"", ""09"", ""10"", or ""11"".","true","true","true","gr_assistance_type__c NOT IN ('02', '03', '04', '05', '06', '07', '08', '09', '10', '11')","Fatal Error","SOQL"
+"FABS6","true","","","RecordType field must contain one of the following values: ""1"", ""2"", or ""3"".","true","true","true","gr_record_type__c NOT IN ('1','2','3')","Fatal Error","SOQL"
+"FABS7","true","","","URI is a required field for aggregate records (RecordType = 1).","true","false","false","gr_uri__c = ''","Fatal Error","SOQL"
+"FABS9.1","true","","","AwardeeOrRecipientLegalEntityName must contain ""MULTIPLE RECIPIENTS"" for aggregate records (RecordType = 1).","true","false","false","gr_record_type__c = '1'
+    AND gr_awardee_or_recipient_legal__c <> 'MULTIPLE RECIPIENTS'","Fatal Error","SOQL"
+"FABS9.2","true","","","AwardeeOrRecipientLegalEntityName must contain ""REDACTED DUE TO PII"" for PII-redacted non-aggregate records (RecordType = 3).","false","false","true","gr_record_type__c = '3'
+    AND gr_awardee_or_recipient_legal__c <> 'REDACTED DUE TO PII'","Fatal Error","SOQL"
+"FABS10.1","true","","","LegalEntityAddressLine1 is required for non-aggregate records (RecordType = 2).","false","true","false","gr_record_type__c = '2'
+    AND gr_legal_entity_address_line1__c = ''
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS10.2","true","","","LegalEntityAddressLine1 must be blank for aggregate and PII-redacted non-aggregate records (RecordType = 1 or 3).","true","false","true","gr_record_type__c IN ('1', '3')
+    AND gr_legal_entity_address_line1__c <> ''","Fatal Error","SOQL"
+"FABS11","true","","","LegalEntityAddressLine2 is optional, but must be blank for aggregate and PII-redacted non-aggregate records (RecordType = 1 or 3).","true","false","true","gr_record_type__c IN ('1', '3')
+    AND gr_legal_entity_address_line2__c <> ''","Fatal Error","SOQL"
+"FABS13.1","true","","","LegalEntityZIP5 must be blank for aggregate records (RecordType = 1).","true","false","false","gr_record_type__c = '1'
+    AND gr_legal_entity_zip5__c <> ''","Fatal Error","SOQL"
+"FABS13.2","true","","","LegalEntityZIP5 must be blank for foreign recipients (i.e., when LegalEntityCountryCode is not USA).  Check the BillingCountry on the associated Account.","true","true","true","gr_legal_entity_country_code__c	 <> 'USA'
+    AND gr_legal_entity_zip5__c <> ''
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS13.3","true","","","LegalEntityZIP5 is required for domestic recipients (LegalEntityCountryCode = USA) for non-aggregate and PII-redacted non-aggregate records (RecordType = 2 or 3).","false","true","true","gr_legal_entity_country_code__c = 'USA'
+    AND gr_record_type__c IN ('2', '3')
+    AND gr_legal_entity_zip5__c = ''
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS14.1","true","","","LegalEntityZIPLast4 must be blank for aggregate and PII-redacted non-aggregate records (RecordType = 1 or 3).","true","false","true","gr_record_type__c IN ('1', '3')
+    AND  gr_legal_entity_zip_last4__c <> ''","Fatal Error","SOQL"
+"FABS14.2","true","","","LegalEntityZIPLast4 must be blank for foreign recipients (i.e., when LegalEntityCountryCode is not USA).","true","true","true","gr_legal_entity_country_code__c <> 'USA'
+    AND gr_legal_entity_zip_last4__c <> ''
+    AND gr_correction_delete_indicatr__c  <> 'D'","Fatal Error","SOQL"
+"FABS14.3","true","","","When it exists, LegalEntityZIPLast4 should be provided for domestic recipients (LegalEntityCountryCode = USA) for non-aggregate records (RecordType = 2). A warning will be triggered when it is not provided in this case.","false","true","false","gr_legal_entity_country_code__c = 'USA'
+    AND gr_record_type__c = '2'
+    AND gr_legal_entity_zip_last4__c = ''","Warning","SOQL"
+"FABS15.1","true","","","LegalEntityForeignCityName is required for foreign recipients (i.e., when LegalEntityCountryCode is not USA) for non-aggregate and PII-redacted non-aggregate records (RecordType = 2 or 3).","false","true","true","gr_legal_entity_country_code__c <> 'USA'
+AND gr_record_type__c IN ('2', '3')
+AND gr_legal_entity_foreign_city__c = ' '
+AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS15.2","true","","","LegalEntityForeignCityName must be blank for domestic recipients (LegalEntityCountryCode = USA) and for aggregate records (RecordType = 1).","true","false","false","(gr_legal_entity_country_code__c = 'USA'
+        OR gr_record_type__c = '1'
+    )
+    AND gr_legal_entity_foreign_city__c <> ''","Fatal Error","SOQL"
+"FABS16","true","","","LegalEntityForeignProvinceName must be blank for domestic recipients (LegalEntityCountryCode = USA) and for aggregate records (RecordType = 1).","true","false","false","(gr_legal_entity_country_code__c = 'USA'
+        OR gr_record_type__c = '1')
+    AND gr_legal_entity_foreign_provi__c <> ''","Fatal Error","SOQL"
+"FABS17","true","","","LegalEntityForeignPostalCode must be blank for domestic recipients (LegalEntityCountryCode = USA) and for aggregate records (RecordType = 1).","true","false","false","(gr_legal_entity_country_code__c = 'USA'
+        OR gr_record_type__c = '1'
+    )
+    AND gr_legal_entity_foreign_posta__c <> ''","Fatal Error","SOQL"
+"FABS18","true","FABS18Rule","","BusinessTypes must be one to three letters in length. BusinessTypes values must be non-repeated letters from A to X.","true","true","true","","Fatal Error","Apex"
+"FABS19","false","","When required, LegalEntityCountryCode must contain a valid three character GENC country code. U.S. Territories and Freely Associated States must be submitted with country code = USA and their state/territory code; they cannot be submitted with their GENC country code. For a list of these territories and more information, see Appendix B of the DAIMS Practices and Procedures.","","true","true","true","","Fatal Error","Not Configured"
+"FABS21.1","false","","When provided, FundingSubTierAgencyCode must be a valid 4-character sub-tier agency code from the Federal Hierarchy.","","true","true","true","","Fatal Error","Not Configured"
+"FABS21.2","false","","If both are submitted, FundingSubTierAgencyCode and FundingOfficeCode must belong to the same FundingAgencyCode (per the Federal Hierarchy).","","true","true","true","","Fatal Error","Not Configured"
+"FABS22","true","","","When provided, CorrectionDeleteIndicator must contain one of the following values: ""C"" or ""D"".","true","true","true","gr_correction_delete_indicatr__c NOT IN ('C','D','')","Fatal Error","SOQL"
+"FABS23.1","false","","When provided, AwardingSubTierAgencyCode must be a valid 4-character sub-tier agency code from the Federal Hierarchy.","","true","true","true","","Fatal Error","Not Configured"
+"FABS23.2","false","","If both are submitted, AwardingSubTierAgencyCode and AwardingOfficeCode must belong to the same AwardingAgencyCode (per the Federal Hierarchy).","","true","true","true","","Fatal Error","Not Configured"
+"FABS23.3","true","","","AwardingSubTierAgencyCode must be provided when AwardingOfficeCode is not provided.","true","true","true","gr_awarding_sub_tier_agency_c__c = ''
+    AND gr_awarding_office_code__c  = ''
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS24.1","true","","","PrimaryPlaceOfPerformanceCountryCode must be blank for PII-redacted non-aggregate records (RecordType = 3).","false","false","true","gr_record_type__c = '3'
+    AND gr_place_of_perform_country_c__c  <> ''","Fatal Error","SOQL"
+"FABS24.2","false","","PrimaryPlaceOfPerformanceCountryCode must contain a valid three character GENC country code for aggregate or non-aggregate records (RecordType = 1 or 2). U.S. Territories and Freely Associated States must be submitted with country code = USA and their state/territory code; they cannot be submitted with their GENC country code. For a list of these territories and more information, see Appendix B of the DAIMS Practices and Procedures.","","true","true","true","","Fatal Error","Not Configured"
+"FABS26.1","true","","","FederalActionObligation must be blank or 0 for loans (AssistanceType = 07 or 08).  Refer to the Funding Award to review the Federal Action Obligation amount.","true","true","true","(gr_assistance_type__c = '07'
+        OR gr_assistance_type__c  = '08'
+    )
+    AND gr_federal_action_obligation__c  <> 0
+    AND gr_correction_delete_indicatr__c  <> 'D'","Fatal Error","SOQL"
+"FABS26.2","true","","","FederalActionObligation is required for non-loans (i.e., when AssistanceType is not 07 or 08).","true","true","true","gr_assistance_type__c <> '07'
+    AND gr_assistance_type__c <> '08'
+    AND gr_federal_action_obligation__c = 0
+   AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS27","true","","","NonFederalFundingAmount must be blank or 0 for loans (AssistanceType = 07 or 08).  Refer to the Total Non-Federal Funding Amount on the Funding Award.","true","true","true","(gr_assistance_type__c = '07' OR gr_assistance_type__c = '08')
+    AND gr_non_federal_funding_amount__c <> 0
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS28.1","true","","","FaceValueOfDirectLoanOrLoanGuarantee is required for loans (AssistanceType = 07 or 08).","true","true","true","(gr_assistance_type__c = '07'
+        OR gr_assistance_type__c = '08'
+    )
+    AND gr_face_value_loan_guarantee__c = 0
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS28.2","true","","","FaceValueOfDirectLoanOrLoanGuarantee must be blank or 0 for non-loans (i.e., when AssistanceType is not 07 or 08).","true","true","true","gr_assistance_type__c <> '07'
+    AND gr_assistance_type__c <> '08'
+    AND gr_face_value_loan_guarantee__c <> 0
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS29.1","true","","","OriginalLoanSubsidyCost is required for loans (AssistanceType = 07 or 08).","true","true","true","(gr_assistance_type__c = '07'
+        OR gr_assistance_type__c = '08'
+    )
+    AND gr_original_loan_subsidy_cost__c = 0
+    AND gr_correction_delete_indicatr__c  <> 'D'","Fatal Error","SOQL"
+"FABS29.2","true","","","OriginalLoanSubsidyCost must be blank or 0 for non-loans (i.e., when AssistanceType is not 07 or 08).","true","true","true","gr_assistance_type__c <> '07'
+    AND gr_assistance_type__c <> '08'
+    AND gr_original_loan_subsidy_cost__c <> 0
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS30","true","","","BusinessFundsIndicator must contain one of the following values: ""REC"" or ""NON"".  Check the Program to review.","true","true","true","gr_business_funds_indicator__c NOT IN ('REC', 'NON')
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS31.1","true","","","AwardeeOrRecipientUEI Field must be blank for aggregate and PII-redacted non-aggregate records (RecordType = 1 or 3, regardless of the BusinessTypes value) and individual recipients (BusinessTypes includes 'P', regardless of the RecordType value).","true","false","true","(gr_record_type__c IN ('1', '3')
+        OR gr_business_types__c LIKE '%P%'
+    )
+    AND gr_awardee_or_recipient_uei__c <> ''","Fatal Error","SOQL"
+"FABS31.2","false","","AwardeeOrRecipientUEI is required where ActionDate is after October 1, 2010, unless the record is an aggregate or PII-redacted non-aggregate record (RecordType = 1 or 3) or the recipient is an individual (BusinessTypes includes 'P'). For AssistanceType 06, 07, 08, 09, 10, or 11, if the base award (the earliest record with the same unique award key) has an ActionDate prior to October 1, 2022, this will produce a warning rather than a fatal error.","","true","false","true","","Fatal Error","Not Configured"
+"FABS31.3","true","FABS31_3Rule","","When AwardeeOrRecipientUEI is provided, it must be twelve characters.","true","true","true","","Fatal Error","Apex"
+"FABS31.4","false","","When provided, AwardeeOrRecipientUEI must be registered (not necessarily active) in SAM, unless the ActionDate is before October 1, 2010. This rule will not trigger in the case where a Treasury-defined identifier is provided.","","true","true","true","","Fatal Error","Not Configured"
+"FABS31.5","false","","When ActionDate is after October 1, 2010 and ActionType = A, AwardeeOrRecipientUEI should (when provided) have an active registration in SAM as of the ActionDate. This rule will not trigger in the case where a Treasury-defined identifier is provided.","","true","true","true","","Warning","Not Configured"
+"FABS31.6","false","","When ActionDate is after October 1, 2010 and ActionType = A, AwardeeOrRecipientUEI should (when provided) have an active registration in SAM as of the ActionDate. This is a warning because CorrectionDeleteIndicator is C and the action date is before January 1, 2017. This rule will not trigger in the case where a Treasury-defined identifier is provided.","","true","true","true","","Warning","Not Configured"
+"FABS31.7","false","","When ActionDate is after October 1, 2010 and ActionType = B, C, or D, AwardeeOrRecipientUEI should (when provided) have an active registration in SAM as of the ActionDate, except where FederalActionObligation is <=0 and ActionType = D. This rule will not trigger in the case where a Treasury-defined identifier is provided.","","true","true","true","","Warning","Not Configured"
+"FABS32.1","false","","PeriodOfPerformanceStartDate is an optional field, but when provided, must follow YYYYMMDD format, where YYYY is the year, MM the month and DD the day.","","true","true","true","","Fatal Error","Other"
+"FABS32.2","true","","","When provided, PeriodOfPerformanceStartDate should be a valid date between 19991001 and 20991231.","true","true","true","((gr_period_of_performance_star__c <= 1999-10-01 AND gr_period_of_performance_star__c >= 2099-12-31) OR gr_period_of_performance_star__c = NULL)","Warning","SOQL"
+"FABS33.1","false","","PeriodOfPerformanceCurrentEndDate is an optional field, but when provided, must follow YYYYMMDD format, where YYYY is the year, MM the month and DD the day.","","true","true","true","(gr_period_of_performance_curr__c >= 1999-10-01 AND gr_period_of_performance_curr__c <= 2099-12-31) OR gr_period_of_performance_curr__c = NULL","Fatal Error","Other"
+"FABS33.2","true","","","When provided, PeriodOfPerformanceCurrentEndDate must be a valid date between 19991001 and 20991231.","true","true","true","((gr_period_of_performance_star__c <= 1999-10-01 AND gr_period_of_performance_star__c >= 2099-12-31) OR gr_period_of_performance_star__c = NULL)","Fatal Error","SOQL"
+"FABS34.1","true","","","When both are provided, PeriodOfPerformanceStartDate must occur on or before PeriodOfPerformanceCurrentEndDate.","true","true","true","gr_period_of_performance_star__c != null AND gr_period_of_performance_curr__c != null AND Gr_Valid_Start_End_Range__c = false AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS34.2","true","","","While they are optional fields, if either PeriodOfPerformanceCurrentEndDate or PeriodOfPerformanceStartDate is provided, both fields should be provided.","true","true","true","((gr_period_of_performance_star__c !=  NULL
+            AND gr_period_of_performance_curr__c = NULL
+        )
+        OR (gr_period_of_performance_star__c = NULL
+            AND gr_period_of_performance_curr__c != NULL
+        ))","Warning","SOQL"
+"FABS35.1","true","FABS35_1Rule","","When provided, LegalEntityZIPLast4 must be in the #### format.","true","true","true","","Fatal Error","Apex"
+"FABS35.2","true","FABS35_2Rule","","LegalEntityZIP5 must be a valid 5-digit USPS ZIP code.","true","true","true","","Fatal Error","Apex"
+"FABS35.3","false","","The combination of LegalEntityZIP5 and LegalEntityZIPLast4 should be a valid 9-digit USPS ZIP+4 code.","","true","true","true","","Warning","Not Configured"
+"FABS36","true","FABS36Rule","","AssistanceListingNumber must be in ##.### format, where # represents a number from 0 to 9.  Check the CFDA Number on the related Program.","true","true","true","","Fatal Error","Apex"
+"FABS37.1","false","","For new (ActionType = A) or mixed aggregate (ActionType = E) assistance awards specifically, the AssistanceListingNumber must be active as of the ActionDate. This does not apply to correction records (those with CorrectionDeleteIndicator = C).","","true","true","true","","Fatal Error","Not Configured"
+"FABS37.2","false","","For non-new assistance awards (ActionType = B, C, or D), the AssistanceListingNumber need not be active as of the ActionDate, but a warning will trigger in this case. This warning will not trigger for correction records (those with CorrectionDeleteIndicator = C).","","true","true","true","","Warning","Not Configured"
+"FABS37.3","false","","AssistanceListingNumber must have been registered with CFDA.gov or registered as an Assistance Listing on SAM.gov (post-May 2018) at some point in time.","","true","true","true","","Fatal Error","Not Configured"
+"FABS38.1","true","","","FundingOfficeCode must be submitted for new awards (ActionType = A) or mixed aggregate records (ActionType = E) whose ActionDate is on or after October 1, 2018, and whose CorrectionDeleteIndicator is either Blank or C.","true","true","true","gr_funding_office_code__c = ''
+    AND gr_action_type__c IN ('A', 'E')
+    AND gr_action_date__c >= 2018-10-01
+    AND gr_correction_delete_indicatr__c in (' ','C')","Fatal Error","SOQL"
+"FABS38.2.1","false","","When provided, FundingOfficeCode must be a valid value from the Federal Hierarchy, including being designated specifically as an Assistance Funding Office in the hierarchy. Since June 2019, the Federal Hierarchy has required that FundingOfficeCodes be flagged as either a Procurement Funding Office or an Assistance Funding Office (or both). The initial implementation of this distinction in FABS will allow either type to be acceptable.","","true","true","true","","Fatal Error","Not Configured"
+"FABS38.2.2","false","","For new modifications to existing awards, we derive FundingOfficeCode from the original transaction establishing the award, when it is provided there and not provided in the new modification. For this row, we are declining to derive the FundingOfficeCode from the original transaction establishing the award because the FundingOfficeCode is either not listed in the Federal Hierarchy or not specifically designated an Assistance Funding Office. Since June 2019, the Federal Hierarchy has required that FundingOfficeCodes be flagged as either a Procurement Funding Office or an Assistance Funding Office (or both). If the code you are providing in this row is indeed accurate, please update the Federal Hierarchy to include it and flag it as an Assistance Funding Office. If it is not accurate, please correct the original award transaction to reference a valid Financial Assistance funding AAC/office code in the hierarchy.","","true","true","true","","Warning","Not Configured"
+"FABS39.1","true","FABS39_1Rule","","PrimaryPlaceOfPerformanceCode is a required field for aggregate and non-aggregate records (RecordType = 1 or 2), and must be in 00FORGN, 00*****, XX*****, XX**###, XX#####, XX00000, XXTS###, XX####T, or XX####R formats, where XX is a valid two-character","true","true","false","","Fatal Error","Apex"
+"FABS38.3","true","","","AwardingOfficeCode must be submitted for new awards (ActionType = A) or mixed aggregate records (ActionType = E) whose ActionDate is on or after October 1, 2018, and whose CorrectionDeleteIndicator is either Blank or C.","true","true","true","gr_awarding_office_code__c = ''
+    AND gr_action_type__c IN ('A', 'E')
+    AND gr_correction_delete_indicatr__c <> 'D'
+    AND gr_action_date__c  >= 2018-10-01","Fatal Error","SOQL"
+"FABS38.4.1","false","","When provided, AwardingOfficeCode must be a valid value from the Federal Hierarchy, including being designated specifically as an Assistance Awarding Office in the hierarchy.","","true","true","true","","Fatal Error","Not Configured"
+"FABS38.4.2","false","","For new modifications to existing awards, we derive AwardingOfficeCode from the original transaction establishing the award, when it is provided there and not provided in the new modification. For this row, we are declining to derive the AwardingOfficeCode from the original transaction establishing the award because the AwardingOfficeCode is either not present in the Federal Hierarchy or not specifically designated as an Assistance Awarding Office there. If the code you are providing in this row is accurate, please update the Federal Hierarchy to include it and flag it as an Assistance Awarding Office. If it is not accurate, please correct the original award transaction to reference a valid Financial Assistance Awarding AAC/office code in the hierarchy.","","true","true","true","","Warning","Not Configured"
+"FABS39.2","true","","","For aggregate or non-aggregate records (RecordType = 1 or 2): PrimaryPlaceOfPerformanceCode must be 00FORGN for foreign places of performance (PrimaryPlaceOfPerformanceCountryCode is not USA) and must not be 00FORGN otherwise.","true","true","false","gr_record_type__c IN ('1', '2')
+    AND ( (gr_place_of_perform_country_c__c = 'USA'
+                AND gr_place_of_performance_code__c = '00FORGN'
+               )
+        OR (gr_place_of_perform_country_c__c <> 'USA'
+            AND gr_place_of_performance_code__c <> '00FORGN'
+        )
+    )
+    AND gr_correction_delete_indicatr__c <> 'D'","Fatal Error","SOQL"
+"FABS39.3","true","FABS39_3Rule","","For aggregate or non-aggregate records (RecordType = 1 or 2): PrimaryPlaceofPerformanceZIP+4 must not be provided for any format of PrimaryPlaceOfPerformanceCode other than XX#####, XXTS###, XX####T, or XX####R.","true","true","false","","Fatal Error","Apex"
+"FABS39.4","true","","","PrimaryPlaceOfPerformanceCode must be blank for PII-redacted non-aggregate records (RecordType = 3).","false","false","true","gr_record_type__c = '3'
+    AND gr_place_of_performance_code__c <> ''","Fatal Error","SOQL"
+"FABS40.1","false","","When PrimaryPlaceOfPerformanceCode is in county-wide format (XX**###), county code ### must be valid and exist in the provided state XX.","","true","true","true","","Fatal Error","Not Configured"
+"FABS40.2","true","FABS40_2Rule","","PrimaryPlaceOfPerformanceCode must be in countywide (XX**###), statewide (XX*****) or 00FORGN formats for aggregate records (RecordType = 1).","true","false","false","","Fatal Error","Apex"
+"FABS41.1","false","","For PrimaryPlaceOfPerformanceCode XX#####, XXTS###, XX####T, or XX####R, where PrimaryPlaceOfPerformanceZIP+4 is ""city-wide"": city code #####, TS###, ####T, or ####R must be valid and exist in the provided state. Note that only city codes with FEATURE_CLASS of 'Census,' 'Civil,' 'Locale,' and 'Populated Place' are accepted.","","true","true","true","","Fatal Error","Not Configured"
+"FABS41.2","false","","For PrimaryPlaceOfPerformanceCode XX#####, XXTS###, XX####T, or XX####R, where valid 5 or 9-digit PrimaryPlaceOfPerformanceZIP+4 is provided: city code #####, TS###, ####T, or ####R should be valid and exist in the provided state, but will only trigger a warning if not.","","true","true","true","","Warning","Not Configured"
+"FABS41.3","false","","The first five digits provided in PrimaryPlaceofPerformanceZIP+4 must be a zip code in the state specified by PrimaryPlaceOfPerformanceCode.","","true","true","true","","Fatal Error","Not Configured"
+"FABS41.4","true","FABS41_4Rule","","When provided, PrimaryPlaceofPerformanceZIP+4 must be in the format #####, #########, #####-####, or contain 'city-wide'.","true","true","true","","Fatal Error","Apex"
+"FABS41.5","false","","When provided, the last four digits in PrimaryPlaceofPerformanceZIP+4 should be part of a valid nine-digit zip code in the state specified by PrimaryPlaceOfPerformanceCode.","","true","true","true","","Warning","Not Configured"
+"FABS41.6","true","FABS41_6Rule","","If PrimaryPlaceOfPerformanceCode is XX00000, PrimaryPlaceOfPerformanceZip+4 must not be 'city-wide'.","true","true","true","","Fatal Error","Apex"
+"FABS41.7","true","","","PrimaryPlaceOfPerformanceZip+4 must be blank for PII-redacted non-aggregate records (RecordType = 3).","false","false","true","gr_record_type__c = '3'
+    AND gr_place_of_performance_zip4a__c <> ''","Fatal Error","SOQL"
+"FABS41.8","true","FABS41_8Rule","","When PrimaryPlaceOfPerformanceCode is in XX#####, XXTS###, XX####T, or XX####R format, PrimaryPlaceOfPerformanceZIP+4 must not be blank (containing either a zip code or city-wide).","true","true","true","","Fatal Error","Apex"
+"FABS42.1","true","","","PrimaryPlaceOfPerformanceForeignLocationDescription is required for foreign places of performance (PrimaryPlaceOfPerformanceCountryCode does not equal USA) for non-aggregate records (RecordType = 2).","false","true","false","gr_place_of_performance_forei__c  = ''
+    AND gr_place_of_perform_country_c__c <> 'USA'
+    AND gr_record_type__c = '2'","Fatal Error","SOQL"
+"FABS42.2","true","","","PrimaryPlaceOfPerformanceForeignLocationDescription must be blank for RecordType = 1 or 3. For RecordType = 2, it must be blank for domestic places of performance (PrimaryPlaceOfPerformanceCountryCode = USA).","true","true","true","gr_place_of_performance_forei__c <> ''
+    AND (gr_place_of_perform_country_c__c = 'USA'
+         OR gr_record_type__c in ('1', '3')
+    )","Fatal Error","SOQL"
+"FABS43.1","true","","","For foreign places of performance (PrimaryPlaceOfPerformanceCountryCode is not USA), PrimaryPlaceOfPerformanceCongressionalDistrict must be blank.","true","true","true","gr_place_of_perform_country_c__c <> 'USA'
+    AND gr_place_of_performance_congr__c <> ''","Fatal Error","SOQL"
+"FABS43.3","true","","","PrimaryPlaceOfPerformanceCongressionalDistrict must be blank for PII-redacted non-aggregate records (RecordType = 3).","false","false","true","gr_place_of_performance_congr__c  <> ''
+    AND gr_record_type__c = '3'","Fatal Error","SOQL"
+"FABS43.4","false","","If PrimaryPlaceOfPerformanceCongressionalDistrict is provided, it must be valid in the state or territory indicated by the PrimaryPlaceOfPerformanceCode. Data with an ActionDate before 20230103 (the date the 2020 redistricting took full effect) will be evaluated based on the USPS source data from prior to the 2020 redistricting.","","true","true","true","","Fatal Error","Not Configured"
+"FABS43.5","false","","If PrimaryPlaceOfPerformanceCongressionalDistrict is provided, it should be associated with the county embedded in the PrimaryPlaceOfPerformanceCode (county-wide awards) or the PrimaryPlaceofPerformanceZIP+4 (single-zip awards) provided. Data with an ActionDate before 20230103 (the date the 2020 redistricting took full effect) will be evaluated based on the USPS source data from prior to the 2020 redistricting.","","true","true","true","","Warning","Not Configured"
+"FABS44.1","true","","","For foreign recipients (LegalEntityCountryCode is not USA), LegalEntityCongressionalDistrict must be blank.","true","true","true","gr_legal_entity_country_code__c  <> 'USA'
+    AND  gr_legal_entity_congressional__c <> ''","Fatal Error","SOQL"
+"FABS44.3","false","","If LegalEntityCongressionalDistrict is provided, it must be valid in the state or territory indicated by LegalEntityZIP5. Data with an ActionDate before 20230103 (the date the 2020 redistricting took full effect) will be evaluated based on the USPS source data from prior to the 2020 redistricting.","","true","true","true","","Fatal Error","Not Configured"
+"FABS44.4","true","","","LegalEntityCongressionalDistrict must be blank for aggregate records (RecordType = 1).","true","false","false","gr_legal_entity_congressional__c  <> ''
+    AND gr_record_type__c = '1'","Fatal Error","SOQL"
+"FABS44.5","false","","If LegalEntityCongressionalDistrict is provided, it should be associated with the ZIP code contained in the LegalEntityZIP5 and LegalEntityZIPLast4 fields. Data with an ActionDate before 20230103 (the date the 2020 redistricting took full effect) will be evaluated based on the USPS source data from prior to the 2020 redistricting.","","true","true","true","","Warning","Not Configured"
+"FABS45","true","FABS45Rule","","When both IndirectCostFederalShareAmount and FederalActionObligation are provided, either 1) both should be zero; or 2) both should share the same sign and IndirectCostFederalShareAmount should be<= to FederalActionObligation (in absolute terms)","true","true","true","","Warning","Apex"
+"FABS46.1","true","","","IndirectCostFederalShareAmount must be blank or 0 for AssistanceType 07, 08, and 09.  This amount is found on the Funding Award.","true","true","true","gr_indirect_cost_federal_sharing__c <> 0
+    AND gr_assistance_type__c IN ('07', '08', '09')","Warning","SOQL"
+"FABS46.2","true","","","IndirectCostFederalShareAmount is required for grants and cooperative agreements (AssistanceType = 02, 03, 04, or 05). This only applies to award actions with ActionDate on or after April 4, 2022.","true","true","true","gr_indirect_cost_federal_sharing__c = 0
+AND gr_assistance_type__c IN ('02', '03', '04', '05')
+AND gr_action_date__c >= 2022-04-04","Fatal Error","SOQL"
+"FABS47.1","true","","","FundingOpportunityNumber must be blank for non-grants/non-cooperative agreements (AssistanceType = 06, 07, 08, 09, 10, or 11).  The Funding Opportunity Number may be found on the Funding Opporutnity.","true","true","true","gr_funding_opportunity_number__c  <> ''
+    AND gr_assistance_type__c  IN ('06', '07', '08', '09', '10', '11')","Fatal Error","SOQL"
+"FABS47.2","true","","","FundingOpportunityNumber is required for all grants and cooperative agreements (AssistanceType = 02, 03, 04, or 05). Agencies may provide the value Not Applicable when a grant or cooperative agreement is not competitive and discretionary.","true","true","true","gr_funding_opportunity_number__c = ''
+    AND gr_assistance_type__c IN ('02', '03', '04', '05')","Warning","SOQL"
+"FABS47.3","true","FABS47_3Rule","","When provided, FundingOpportunityNumber must only contain letters (a-z, lowercase or uppercase), numerals (0-9), or the '-' character, to ensure consistency with Grants.gov FundingOpportunityNumber formatting requirements.","true","true","true","","Warning","Apex"
+"FABS47.4","false","","When provided, FundingOpportunityNumber should match a FundingOpportunityNumber within an existing notice of funding opportunity on Grants.gov.","","true","true","true","","Warning","Not Configured"
+"FABS48.1","true","FABS48_1Rule","","FundingOpportunityGoalsText must be blank for non-grants/non-cooperative agreements (AssistanceType = 06, 07, 08, 09, 10, or 11).  The Assistance Type may be found on the related Program and the Funding Opportunity Goals Text on the Funding Opportunity.","true","true","true","","Fatal Error","Apex"
+"FABS48.2","true","FABS48_2Rule","","FundingOpportunityGoalsText is required for all grants and cooperative agreements (AssistanceType = 02, 03, 04, or 05). Agencies may provide the value Not Applicable when a grant or cooperative agreement is not competitive and discretionary.","true","true","true","","Warning","Apex"
+"FABS49","false","","A submitted Financial Assistance award must have a (derived) AwardingAgencyCode that is consistent with the toptier component of the agency selected at the outset of the FABS submission. This comparison only takes place at the TopTier level, not the SubTier level.","","true","true","true","","Fatal Error","Not Configured"
+"FABSREQ1","true","FABSREQ1Rule","","AwardDescription is required for all submissions, but was not provided in this row.","true","true","true","","Fatal Error","Apex"
+"FABSREQ10","true","","","This field is required for all submissions but was not provided in this row (AssistanceListingNumber).","true","true","true","gr_assistance_listing_number__c = ''","Fatal Error","SOQL"
+"FABSREQ11","true","","","ActionType is required for all submissions but was not provided in this row.","true","true","true","gr_action_type__c = ''","Fatal Error","SOQL"
+"FABSREQ3","true","","","RecordType is required for all submissions, but was not provided in this row.","true","true","true","gr_record_type__c = ''","Fatal Error","SOQL"
+"FABSREQ4","true","","","BusinessFundsIndicator is required for all submissions, but was not provided in this row.","true","true","true","gr_business_funds_indicator__c = ''","Fatal Error","SOQL"
+"FABSREQ5","true","","","LegalEntityCountryCode is required for all submissions, but was not provided in this row.","true","true","true","gr_legal_entity_country_code__c = ''","Fatal Error","SOQL"
+"FABSREQ6","true","","","BusinessTypes is required for all submissions, but was not provided in this row.","true","true","true","gr_business_types__c = ''","Fatal Error","SOQL"
+"FABSREQ7","true","","","AssistanceType is required for all submissions, but was not provided in this row.","true","true","true","gr_assistance_type__c = ''","Fatal Error","SOQL"
+"FABSREQ8","true","","","ActionDate is required for all submissions, but was not provided in this row.","true","true","true","gr_action_date__c = NULL","Fatal Error","SOQL"
+"FABSREQ9","true","","","AwardeeOrRecipientLegalEntityName is required for all submissions, but was not provided in this row.","true","true","true","gr_awardee_or_recipient_legal__c = ''","Fatal Error","SOQL"
