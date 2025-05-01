@@ -6,7 +6,7 @@ The FABS (Financial Assistance Broker Submission) file is a reporting format use
 
 The FABS File Assistant provides a mechanism, assuming you are using the Public Sector Solutions Grantmaking module and have installed the Grantmaking FIBF Data Model accelerator, to determine how your data aligns with the GSDM (Governmentwide Spending Data Model) Validation Rules (as of 4/11/2024). 
 
-Accelerator Listing: [insert url to the public listing on the Accelerator site](https://gpsaccelerators.developer.salesforce.com/) (tbd once published)
+[Accelerator Listing](https://pubsec-accelerators.my.site.com/accelerators/accelerator/a0wDo000000BBEZIA4/grantmaking-fabs-file-assistant)
 
 
 ## Description
